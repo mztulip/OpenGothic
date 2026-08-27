@@ -1,5 +1,10 @@
 name: Build
 
+env:
+  VK_SDK:       '1.4.357.0'
+  BUILD_TYPE:   RelWithDebInfo
+  BUILD_OFFSET: 3623  # continue from AppVeyor build numbers
+
 on:
   push:
     branches: [master]
@@ -8,9 +13,8 @@ on:
     branches: [master]
   workflow_dispatch:
 
-env:
-  BUILD_TYPE: RelWithDebInfo
-  BUILD_OFFSET: 3623  # continue from AppVeyor build numbers
+permissions:
+  contents: read
 
 jobs:
   setup:
@@ -32,10 +36,15 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: ./.github/actions/setup-vulkan
+        with:
+          os: Linux
+          vk-sdk: ${{ env.VK_SDK }}
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y glslang-tools libvulkan-dev libasound2-dev libx11-dev libxcursor-dev
+          sudo apt-get install -y glslang-tools libasound2-dev libx11-dev libxcursor-dev
 
       - name: Generate build version
         run: |
@@ -48,7 +57,7 @@ jobs:
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
       - name: Build
-        run: cmake --build build --target Gothic2Notr -j $(nproc)
+        run: cmake --build build --target Gothic2Notr Spacer -j $(nproc)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
@@ -64,11 +73,16 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: ./.github/actions/setup-vulkan
+        with:
+          os: Linux
+          vk-sdk: ${{ env.VK_SDK }}
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential devscripts debhelper cmake g++ \
-            glslang-tools libvulkan-dev libasound2-dev libx11-dev libxcursor-dev
+            glslang-tools libasound2-dev libx11-dev libxcursor-dev
 
       - name: Setup ./debian
         run: |
@@ -102,6 +116,11 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: ./.github/actions/setup-vulkan
+        with:
+          os: Windows
+          vk-sdk: ${{ env.VK_SDK }}
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -111,7 +130,6 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-ninja
             mingw-w64-x86_64-glslang
-            mingw-w64-x86_64-vulkan-devel
 
       - name: Generate build version
         shell: pwsh
@@ -125,7 +143,7 @@ jobs:
         run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
       - name: Build
-        run: cmake --build build --target Gothic2Notr
+        run: cmake --build build --target Gothic2Notr Spacer
 
       - name: Copy runtime DLLs
         run: |
@@ -164,7 +182,7 @@ jobs:
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
       - name: Build
-        run: cmake --build build --target Gothic2Notr -j $(sysctl -n hw.ncpu)
+        run: cmake --build build --target Gothic2Notr Spacer -j $(sysctl -n hw.ncpu)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
@@ -182,7 +200,7 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: brew install glslang molten-vk
+        run: brew install glslang
 
       - name: Generate build version
         run: |
@@ -195,7 +213,7 @@ jobs:
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
       - name: Build
-        run: cmake --build build --target Gothic2Notr -j $(sysctl -n hw.ncpu)
+        run: cmake --build build --target Gothic2Notr Spacer -j $(sysctl -n hw.ncpu)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
