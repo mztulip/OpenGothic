@@ -81,6 +81,7 @@ class LightGroup final {
     void                       markAsDurty(size_t id);
     void                       markAsDurtyNoSync(size_t id);
     void                       resetDurty();
+    static LightSsbo lightToSsbo(const LightSource& l);
 
     const zenkit::LightPreset& findPreset(std::string_view preset) const;
 
