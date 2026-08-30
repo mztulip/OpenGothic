@@ -23,24 +23,25 @@ struct RangeMapPoint {
   float corrected;
   };
 
+
 static const RangeMapPoint RANGE_MAP[] = {
   {   15.f,  100.f }, 
   {   50.f,  100.f },  
   {   80.f,  100.f },  // NW_STANDART_DARKBLUE
   {  100.f,  100.f },  // FIRESMALL, AURA
-  {  150.f,  100.f },  // DEFAULTLIGHT_DARKBLUE
+  {  150.f,  150.f },  // DEFAULTLIGHT_DARKBLUE
   {  200.f,  200.f },  // CITY
-  {  250.f,  200.f },  // NW_STANDART_DARKBLUE, NW_STANDART_FIRE_DYNAMIC
-  {  300.f,  200.f },  // NW_STANDART_CRAWLER, AMBIENCE_300, DEMONTOWER_SMALL_LIGHT
-  {  350.f,  200.f },  // AMBIENCE_ENTRANCE_500, DARK
-  {  400.f,  200.f },  // AMBIENCE_IN_FRONT_OF_WINDOW, AMBIENCE_500, DARKROOMBLUE
-  {  500.f,  200.f },  // FIRE_STAT, CRYSTAL_01, FACKEL_FEUER, BANDITEN, FX_LIGHT1
-  {  600.f,  200.f },  // VALLEY_DUNGEON_600, CRYSTAL_ROSE_600, FACKEL_FEUER
-  {  650.f,  200.f },  // AURA (small)
-  {  700.f,  200.f },  // FIRE_SMALL_02, DEMONTOWER_LIGHT_02, LIGHT, HELL_RED
-  {  800.f,  200.f },  // NW_STANDART_FIRE_STATIC, HELLRED_DYN
-  {  900.f,  200.f },  // NW_STANDART_FIRE_STATIC, FIRE_STAT
-  { 1000.f,  300.f },  // FIRESMALL, CRYSTAL_02, DARK_CANYON_1000
+  {  250.f,  250.f },  // NW_STANDART_DARKBLUE, NW_STANDART_FIRE_DYNAMIC
+  {  300.f,  300.f },  // NW_STANDART_CRAWLER, AMBIENCE_300, DEMONTOWER_SMALL_LIGHT
+  {  350.f,  350.f },  // AMBIENCE_ENTRANCE_500, DARK
+  {  400.f,  400.f },  // AMBIENCE_IN_FRONT_OF_WINDOW, AMBIENCE_500, DARKROOMBLUE
+  {  500.f,  500.f },  // FIRE_STAT, CRYSTAL_01, FACKEL_FEUER, BANDITEN, FX_LIGHT1
+  {  600.f,  600.f },  // VALLEY_DUNGEON_600, CRYSTAL_ROSE_600, FACKEL_FEUER
+  {  650.f,  650.f },  // AURA (small)
+  {  700.f,  700.f },  // FIRE_SMALL_02, DEMONTOWER_LIGHT_02, LIGHT, HELL_RED
+  {  800.f,  800.f },  // NW_STANDART_FIRE_STATIC, HELLRED_DYN
+  {  900.f,  900.f },  // NW_STANDART_FIRE_STATIC, FIRE_STAT
+  { 1000.f,  1000.f },  // FIRESMALL, CRYSTAL_02, DARK_CANYON_1000
   { 1200.f,  300.f },  // LIGHT
   { 1500.f,  300.f },  // INROOM_DARKBLUE, HELLES FEUER
   { 2000.f,  300.f },  // NW_STANDART_DARKBLUE
@@ -127,8 +128,6 @@ void LightGroup::Light::setRange(float r) {
   auto& data = owner->lightSourceDesc[id];
   data.setRange(r);
 
-  // auto& ssbo = owner->lightSourceData[id];
-  // ssbo.range = data.isEnabled() ? clampRange(r) : 0;
   owner->lightSourceData[id] = lightToSsbo(data);
   owner->markAsDurty(id);
   }
@@ -216,9 +215,6 @@ LightGroup::Light LightGroup::add(const zenkit::LightPreset& vob) {
   auto   lx = Light(*this, id);
 
   auto& ssbo = lightSourceData[lx.id];
-  // ssbo.pos   = l.position();
-  // ssbo.range = l.isEnabled() ? clampRange(l.range()) : 0;
-  // ssbo.color = l.color();
   ssbo = lightToSsbo(l);
 
   auto& data = lightSourceDesc[lx.id];
@@ -373,10 +369,6 @@ void LightGroup::tick(uint64_t time) {
     auto& light = lightSourceDesc[i];
     light.update(time);
 
-    // LightSsbo ssbo;
-    // ssbo.pos   = light.position();
-    // ssbo.color = light.currentColor();
-    // ssbo.range = light.isEnabled() ? clampRange(light.currentRange()) : 0;
     LightSsbo ssbo = lightToSsbo(light);
 
     auto& dst = lightSourceData[i];
