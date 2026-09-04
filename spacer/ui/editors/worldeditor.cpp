@@ -2,11 +2,11 @@
 
 #include <Tempest/Painter>
 #include <Tempest/Log>
+#include <Tempest/ListView>
 
-#include "ui/property/property.h"
-#include "ui/property/propertylist.h"
-#include "ui/objects/worldedit.h"
-
+#include "ui/property/propertydelegate.h"
+#include "ui/vobtreedelegate.h"
+#include "objects/worldedit.h"
 #include "editorwindow.h"
 #include "resources.h"
 
@@ -14,23 +14,6 @@ using namespace Tempest;
 
 WorldEditor::WorldEditor() {
   setFocusPolicy(Tempest::ClickFocus);
-
-  props = {
-    {"Vob"},
-    {"vobName",               Property::Type::Int1},
-    {"visual",                Property::Type::Int1},
-    {"showVisual",            Property::Type::Bool1},
-    {"visualCamAlign",        Property::Type::Enum},
-    {"visualAniMode",         Property::Type::Enum},
-    {"visualAniModeStrength", Property::Type::Vec1},
-    {"vobFarClipZScale",      Property::Type::Vec1},
-    {"cdStatic",              Property::Type::Bool1},
-    {"cdDyn",                 Property::Type::Bool1},
-    {"staticVob",             Property::Type::Bool1},
-    {"dynShadow",             Property::Type::Enum},
-    {"zbias",                 Property::Type::Vec1},
-    {"isAmbient",             Property::Type::Bool1},
-    };
 
   try {
     // level.reset(new WorldEdit("dragonisland.zen"));
@@ -45,6 +28,9 @@ WorldEditor::WorldEditor() {
     Tempest::Log::e("unable to load landscape mesh");
     }
 
+  timer.timeout.bind(this, &WorldEditor::tick);
+  timer.start(16);
+  renderer.setLightsHud(&Assets::inst().im.pointLight);
   EditorWindow::onUpdate3D.bind(this, &WorldEditor::update3d);
   }
 
@@ -57,13 +43,26 @@ std::string_view WorldEditor::title() const {
   }
 
 BaseEditor::BaseTool* WorldEditor::createToolpanel(ToolWindow::Tool tool) {
-  if(tool!=ToolWindow::T_VobProp)
-    return nullptr;
-  auto ctrl = new BaseTool();
-  auto& prop = ctrl->addWidget(new PropertyList(props));
-  ctrl->setLayout(Vertical);
-  // prop.onChanged.bind(this,&LevelEditor::onProperty);
-  return ctrl;
+  if(tool==ToolWindow::T_VobTree) {
+    auto ctrl = new BaseTool();
+    auto& list     = ctrl->addWidget(new Tempest::ListView());
+    auto& delegate = *list.setDelegate(new VobTreeDelegate(*level));
+    ctrl->setLayout(Vertical);
+    delegate.onVobSelected.bind(this, &WorldEditor::selectVob);
+
+    treeDelegate = &delegate;
+    return ctrl;
+    }
+  if(tool==ToolWindow::T_VobProp) {
+    auto ctrl = new BaseTool();
+    auto& list     = ctrl->addWidget(new Tempest::ListView());
+    auto& delegate = *list.setDelegate(new PropertyDelegate());
+    ctrl->setLayout(Vertical);
+
+    propertyDelegate = &delegate;
+    return ctrl;
+    }
+  return nullptr;
   }
 
 void WorldEditor::undo() {
@@ -96,6 +95,8 @@ void WorldEditor::keyUpEvent(Tempest::KeyEvent& e) {
 
 void WorldEditor::mouseDownEvent(Tempest::MouseEvent& e) {
   mpos = e.pos();
+  if(auto vob = rayQuery(mpos))
+    selectVob(*vob);
   update();
   }
 
@@ -124,9 +125,6 @@ void WorldEditor::dropDone(DropOverEvent& ev) {
 
 void WorldEditor::paintEvent(PaintEvent& e) {
   Painter p(e);
-  p.setBrush(Color(0,0,0.4,1));
-  p.drawRect(0, 0, w(), h());
-
   p.setBrush(textureCast<Texture2d&>(sceneImage));
   p.drawRect(0, 0, w(), h(),
              0, 0, sceneImage.w(), sceneImage.h());
@@ -150,7 +148,6 @@ void WorldEditor::update3d(Tempest::Encoder<Tempest::CommandBuffer>& cmd, uint8_
   if(!hasFocus() && !needToUpdate())
     return;
 
-  tickCamera(16); //TODO
   renderer.draw(sceneImage, cmd, cmdId, level->view(), camera);
   }
 
@@ -172,4 +169,22 @@ void WorldEditor::tickCamera(uint64_t dt) {
     update();
     }
   camera.tick(dt);
+  }
+
+void WorldEditor::tick() {
+  tickCamera(16);
+  }
+
+const WorldEdit::Vob* WorldEditor::rayQuery(Tempest::Point mpos) {
+  return level->rayQuery(camera.view(), camera.viewProj(), mpos, size());
+  }
+
+void WorldEditor::selectVob(const WorldEdit::Vob& vob) {
+  if(vob.get()==nullptr)
+    return;
+  const auto pos = vob.get()->position;
+  renderer.setGizmo(true, Vec3(pos.x,pos.y,pos.z));
+  treeDelegate->setVob(&vob);
+  propertyDelegate->setVob(&vob);
+  update();
   }

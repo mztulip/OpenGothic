@@ -1,10 +1,13 @@
 #include "parameterwidget.h"
 
+#include <zenkit/Misc.hh>
+
 #include "enumwidget.h"
 #include "floatwidget.h"
 #include "intwidget.h"
 #include "vecwidget.h"
 #include "colorwidget.h"
+#include "stringwidget.h"
 
 #include "ui/uihelper.h"
 
@@ -75,6 +78,14 @@ struct ParameterWidget::Base : ParameterWidget {
     return 0;
     }
 
+  static std::string toString(const Variant& val) {
+    if(auto i = val.get<std::string_view>())
+      return std::string(*i);
+    if(auto i = val.get<std::string>())
+      return std::string(*i);
+    return "";
+    }
+
   Editor* edit = nullptr;
   size_t  pos = 0;
   };
@@ -121,11 +132,34 @@ struct ParameterWidget::EditColorWidget : Base<ColorWidget> {
     if(auto v3 = v.get<Vec3>()) {
       edit->setValue(*v3);
       }
+    if(auto cl = v.get<zenkit::Color>()) {
+      edit->setValue(*cl);
+      }
     }
 
   void adjustSize() {
     auto sz = UiHelper::wrapContent(*this,Vertical);
     setSizeHint(sz,margins());
+    }
+  };
+
+struct ParameterWidget::EditString : Base<StringWidget> {
+  EditString(size_t pos, std::string_view name):Base(pos,name) {
+    edit->onValueModifyed.bind(this, &EditString::commit);
+    }
+
+  void commit(std::string_view a, bool commit) {
+    Variant v;
+    v.set(std::string(a));
+    onChanged(pos,v,commit);
+    }
+
+  Variant argv() const override {
+    return Variant(std::string(edit->value()));
+    }
+
+  void setArgv(const Variant& v) override {
+    edit->setValue(toString(v));
     }
   };
 
@@ -237,11 +271,15 @@ ParameterWidget* ParameterWidget::implCreateEditor(const Property::Type& type, s
     ret->edit->setItems({"False","True"});
     return ret;
     }
+  if(&type==&Property::Type::String) {
+    auto ret = new EditString(pos, name);
+    return ret;
+    }
 
   const auto ctype = type.coreType;
   switch(ctype) {
     case Property::CoreType::Texture:
-      return nullptr; //new EditTexture(pos,name); //TODO: edit texture
+      return new ParameterWidget(); //TODO: edit texture
     case Property::CoreType::Vec1:
       return implVecEditor<EditFloat1,float>(type,name,min,max,pos);
     case Property::CoreType::Vec2:

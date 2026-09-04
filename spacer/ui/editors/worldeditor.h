@@ -3,14 +3,16 @@
 #include <Tempest/Fence>
 
 #include "ui/editors/baseeditor.h"
-#include "ui/property/propertylist.h"
 #include "ui/dragdrop.h"
 
 #include "graphics/renderer.h"
+#include "objects/worldedit.h"
 #include "utils/keycodec.h"
 #include "camera.h"
 
 class WorldEdit;
+class PropertyDelegate;
+class VobTreeDelegate;
 
 class WorldEditor: public BaseEditor,
                    public DropReciver  {
@@ -26,13 +28,13 @@ class WorldEditor: public BaseEditor,
     void redo() override;
 
     void keyDownEvent(Tempest::KeyEvent& e) override;
-    void keyUpEvent(Tempest::KeyEvent& e) override;
+    void keyUpEvent  (Tempest::KeyEvent& e) override;
 
     void mouseDownEvent(Tempest::MouseEvent& e) override;
     void mouseDragEvent(Tempest::MouseEvent& e) override;
 
-    void moveDropOver (DropOverEvent& ev) override;
-    void dropDone     (DropOverEvent& ev) override;
+    void moveDropOver(DropOverEvent& ev) override;
+    void dropDone    (DropOverEvent& ev) override;
 
     void paintEvent(Tempest::PaintEvent& e) override;
     void resizeEvent(Tempest::SizeEvent& e) override;
@@ -42,9 +44,12 @@ class WorldEditor: public BaseEditor,
     void update3d(Tempest::Encoder<Tempest::CommandBuffer>& cmd, uint8_t cmdId);
     void processKeyboard(Tempest::KeyEvent& e);
     void tickCamera(uint64_t dt);
+    void tick();
 
-    std::vector<PropertyList::Prop> props;
+    auto rayQuery(Tempest::Point mpos) -> const WorldEdit::Vob*;
+    void selectVob(const WorldEdit::Vob& vob);
 
+    Tempest::Timer             timer;
     Camera                     camera;
     std::unique_ptr<WorldEdit> level;
 
@@ -57,4 +62,7 @@ class WorldEditor: public BaseEditor,
 
     bool                   ctrl[KeyCodec::Last] = {};
     Tempest::Point         mpos = {};
+
+    VobTreeDelegate*       treeDelegate = nullptr;
+    PropertyDelegate*      propertyDelegate = nullptr;
   };
