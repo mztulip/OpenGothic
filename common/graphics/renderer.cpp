@@ -683,9 +683,9 @@ void Renderer::draw(Tempest::Attachment& result, Encoder<CommandBuffer>& cmd, ui
 
   cmd.setFramebuffer({{sceneLinear, Tempest::Discard, Tempest::Preserve}}, {zbuffer, Tempest::Readonly});
   drawShadowResolve(cmd, wview);
-  drawAmbient(cmd, wview);
+  // drawAmbient(cmd, wview);
   drawLights(cmd, wview);
-  drawSky(cmd, wview);
+  // drawSky(cmd, wview);
   drawLightTreeDbg(sceneLinear, cmd, wview);
 
   stashSceneAux(cmd);
@@ -694,7 +694,7 @@ void Renderer::draw(Tempest::Attachment& result, Encoder<CommandBuffer>& cmd, ui
 
   cmd.setFramebuffer({{sceneLinear, Tempest::Preserve, Tempest::Preserve}}, {zbuffer, Tempest::Preserve, Tempest::Preserve});
   cmd.setDebugMarker("Sun&Moon");
-  drawSunMoon(cmd, wview);
+  // drawSunMoon(cmd, wview);
   cmd.setDebugMarker("Translucent");
   wview.drawTranslucent(cmd, fId);
 
