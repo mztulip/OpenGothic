@@ -16,7 +16,7 @@ const float IorAir   = 1.52;       // water /air
 const vec3  WaterAlbedo = vec3(0.8,0.9,1.0);
 
 // in vanilla game night time attenuated as rgb{18 16 60}
-const float GMoonIntensity = 0.36;
+const float GMoonIntensity = 0.10;
 const vec3  NightAmbient   = vec3(0.3, 0.26, 1)*GMoonIntensity;
 
 const vec3  GGroundAlbedo = vec3(0.3);
