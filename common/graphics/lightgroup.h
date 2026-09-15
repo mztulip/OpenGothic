@@ -15,6 +15,15 @@ class LightGroup final {
   public:
     LightGroup(const SceneGlobals& scene);
 
+    struct RangeMapPoint {
+      float original;
+      float corrected;
+      };
+
+    static std::vector<RangeMapPoint>& rangeMap();
+    static float                       correctedRange(float range);
+    void invalidateAll();
+
     class Light final {
       public:
         Light() = default;

@@ -10,6 +10,7 @@
 #include "world/triggers/abstracttrigger.h"
 #include "camera.h"
 #include "gothic.h"
+#include "graphics/lightgroup.h"
 
 static bool startsWith(std::string_view str, std::string_view needle) {
   if(needle.size()>str.size())
@@ -102,6 +103,11 @@ Marvin::Marvin() {
     {"ztoggle tnl",                C_Invalid},
     {"ztoggle vobbox",             C_ToggleVobBox},
     {"zvideores %d %d %d",         C_Invalid},
+
+    {"lightrange list",       C_LightRangeList},
+    {"lightrange set %d %f",  C_LightRangeSet},
+    {"lightrange add %d %f",  C_LightRangeAdd},
+    {"lightrange dump",       C_LightRangeDump},
 
     // game
     {"LC1",                        C_Invalid},
@@ -476,6 +482,50 @@ bool Marvin::exec(std::string_view v) {
     case C_TogglePathtrace:
       Gothic::inst().togglePathtrace();
       return true;
+
+    case C_LightRangeList: {
+      auto& table = LightGroup::rangeMap();
+      for(size_t i=0; i<table.size(); ++i)
+        print(string_frm(i, ": orig=", table[i].original, "  corr=", table[i].corrected));
+      return true;
+      }
+
+    case C_LightRangeSet: {
+      size_t idx = 0;
+      float  val = 0;
+      if(!fromString(ret.argv[0], idx) || !fromString(ret.argv[1], val))
+        return false;
+      auto& table = LightGroup::rangeMap();
+      if(idx>=table.size())
+        return false;
+      table[idx].corrected = val;
+      print(string_frm("lightrange[", idx, "].corrected = ", val));
+
+      if(auto* w = Gothic::inst().world())
+              const_cast<LightGroup&>(w->view()->lights()).invalidateAll();
+
+      return true;
+      }
+
+    case C_LightRangeAdd: {
+      size_t idx   = 0;
+      float  delta = 0;
+      if(!fromString(ret.argv[0], idx) || !fromString(ret.argv[1], delta))
+        return false;
+      auto& table = LightGroup::rangeMap();
+      if(idx>=table.size())
+        return false;
+      table[idx].corrected += delta;
+      print(string_frm("lightrange[", idx, "].corrected = ", table[idx].corrected));
+      return true;
+      }
+
+    case C_LightRangeDump: {
+      auto& table = LightGroup::rangeMap();
+      for(auto& p : table)
+        print(string_frm("{ ", p.original, "f, ", p.corrected, "f },"));
+      return true;
+      }
     }
 
   return true;

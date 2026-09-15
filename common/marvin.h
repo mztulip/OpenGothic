@@ -67,6 +67,12 @@ class Marvin {
       C_ToggleVsm,
       C_ToggleRtsm,
       C_TogglePathtrace,
+
+      //
+      C_LightRangeList,
+      C_LightRangeSet,
+      C_LightRangeAdd,
+      C_LightRangeDump,
       };
 
     struct Cmd {
