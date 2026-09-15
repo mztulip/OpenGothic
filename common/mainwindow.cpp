@@ -26,6 +26,8 @@
 #include "commandline.h"
 #include "gothic.h"
 
+#include <iostream>
+
 using namespace Tempest;
 
 MainWindow::MainWindow(Device& device)
@@ -33,6 +35,7 @@ MainWindow::MainWindow(Device& device)
     atlas(device),rootMenu(keycodec),inventory(keycodec),
     dialogs(inventory),document(keycodec),
     console(*this),
+    lightRangeEditor(*this),
 #if defined(__MOBILE_PLATFORM__)
     mobileUi(player),
 #endif
@@ -110,6 +113,10 @@ MainWindow::MainWindow(Device& device)
   funcKey[10] = Shortcut(*this,Event::M_NoModifier,Event::K_F10);
   funcKey[10].onActivated.bind(this, &MainWindow::onMarvinKey<Event::K_F10>);
 
+  funcKey[11] = Shortcut(*this,Event::M_NoModifier,Event::K_F12);
+  funcKey[11].onActivated.bind(this, &MainWindow::onMarvinKey<Event::K_F12>);
+
+
   displayPos = Shortcut(*this,Event::M_Alt,Event::K_P);
   displayPos.onActivated.bind(this, &MainWindow::onMarvinKey<Event::K_P>);
   }
@@ -127,6 +134,7 @@ MainWindow::~MainWindow() {
 #if defined(__MOBILE_PLATFORM__)
   takeWidget(&mobileUi);
 #endif
+  takeWidget(&lightRangeEditor); 
   removeAllWidgets();
   // unload
   Gothic::inst().setGame(std::unique_ptr<GameSession>());
@@ -147,6 +155,7 @@ void MainWindow::setupUi() {
 #if defined(__MOBILE_PLATFORM__)
   addWidget(&mobileUi);
 #endif
+  addWidget(&lightRangeEditor); 
 
   rootMenu.setMainMenu();
 
@@ -785,6 +794,8 @@ template<Tempest::KeyEvent::KeyType k>
 void MainWindow::onMarvinKey() {
   switch(k) {
     case Event::K_F2:
+      Tempest::Log::i("Nacisnieto F2!");
+      std::cout << "[DEBUG] Nacisnieto F2"<<std::endl;
       if(Gothic::inst().isMarvinEnabled()) {
         console.resize(w(),h());
         console.setFocus(true);
@@ -838,8 +849,14 @@ void MainWindow::onMarvinKey() {
           }
         }
       break;
-    case Event::K_F8:
-      //player.marvinF8();
+    case Event::K_F12:
+      Tempest::Log::i("Nacisnieto F12!");
+      std::cout << "[DEBUG] ";
+      if(Gothic::inst().isMarvinEnabled())
+      {
+        Tempest::Log::i("Wlaczam range edytor!");
+        lightRangeEditor.toggle();
+      }
       break;
 
     case Event::K_F9: {

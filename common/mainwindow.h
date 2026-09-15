@@ -34,9 +34,11 @@
 #include "ui/menuroot.h"
 #include "ui/consolewidget.h"
 #include "ui/touchinput.h"
+#include "ui/lightrangeeditor.h"
 
 #include "utils/keycodec.h"
 #include "resources.h"
+
 
 class MenuRoot;
 class GameSession;
@@ -150,6 +152,7 @@ class MainWindow : public Tempest::Window {
     DocumentMenu              document;
     ChapterScreen             chapter;
     ConsoleWidget             console;
+    LightRangeEditor lightRangeEditor;
 #if defined(__MOBILE_PLATFORM__)
     TouchInput                mobileUi;
 #endif
@@ -160,7 +163,7 @@ class MainWindow : public Tempest::Window {
     PlayerControl             player;
     uint64_t                  lastTick=0;
 
-    Tempest::Shortcut         funcKey[11];
+    Tempest::Shortcut         funcKey[12];
     Tempest::Shortcut         displayPos;
 
     struct BenchmarkData {
