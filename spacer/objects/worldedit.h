@@ -36,12 +36,12 @@ class WorldEdit {
         auto release(size_t i) -> std::unique_ptr<Vob>;
         void insert(size_t i, std::unique_ptr<Vob> v);
 
-        void clearView();
-        void initView(WorldEdit& owner);
-
         void setPosition(const Tempest::Vec3& pos);
 
       private:
+        void clearView();
+        void initView(WorldEdit& owner);
+
         std::vector<std::unique_ptr<Vob>>      child;
         std::shared_ptr<zenkit::VirtualObject> orig;
 
@@ -50,6 +50,11 @@ class WorldEdit {
         LightGroup::Light light;
 
       friend class WorldEdit;
+
+      friend class CmdDeleteVob;
+
+      template<class Vob, class F>
+      friend class CmdSetProperty;
       };
 
     const Vob& root() const { return rootVob; }
@@ -60,7 +65,6 @@ class WorldEdit {
 
   private:
     void load(Vob& out, std::vector<std::shared_ptr<zenkit::VirtualObject>>& child);
-    void initView(Vob& out);
 
     void rayQueryLight(Tempest::Point mpos, Tempest::Size wsize, const Tempest::Matrix4x4& vp,
                        const Tempest::Vec3& rayOrig, const Tempest::Vec3& rayDir,
@@ -101,4 +105,37 @@ class CmdDeleteVob : public Command::Action<WorldEdit> {
     WorldEdit::Vob*                 parent = nullptr;
     size_t                          index  = 0;
     std::unique_ptr<WorldEdit::Vob> stash;
+  };
+
+template<class Vob, class F>
+class CmdSetProperty: public Command::Action<WorldEdit> {
+  public:
+    CmdSetProperty(WorldEdit::Vob* vob, F Vob::* field, const F& v) : vob(vob), field(field), value(v) {}
+
+  private:
+    void redo(WorldEdit& subj) override {
+      auto& vx = *dynamic_cast<Vob*>(vob->orig.get());
+      auto& f  = (vx.*field);
+      std::swap(f, value);
+      //TODO: easeup non-visivic properties
+      //TODO: easeup non-committed props
+      vob->initView(subj);
+      }
+
+    void undo(WorldEdit& subj) override {
+      redo(subj);
+      }
+
+    bool merge(const Action& prev) override {
+      if(auto p = dynamic_cast<const CmdSetProperty<Vob,F>*>(&prev)) {
+        if(p->vob==vob && p->field==field) {
+          return true;
+          }
+        }
+      return false;
+      }
+
+    WorldEdit::Vob* vob;
+    F Vob::*        field;
+    F               value;
   };
