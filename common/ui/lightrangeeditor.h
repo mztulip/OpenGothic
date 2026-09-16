@@ -18,7 +18,9 @@ class LightRangeEditor : public Tempest::Widget {
     void mouseMoveEvent (Tempest::MouseEvent& e) override;
     void mouseWheelEvent(Tempest::MouseEvent& e) override;
     void keyDownEvent   (Tempest::KeyEvent&   e) override;
-
+    Tempest::Rect saveButtonRect() const;
+    Tempest::Rect loadButtonRect() const;
+    
     int  rowAt(int y) const;
     void setValueFromX(size_t row, int x);
 

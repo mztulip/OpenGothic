@@ -22,6 +22,8 @@ class LightGroup final {
 
     static std::vector<RangeMapPoint>& rangeMap();
     static float                       correctedRange(float range);
+    static void                        saveRangeMap();
+    static void                        loadRangeMap(); 
     void invalidateAll();
 
     class Light final {

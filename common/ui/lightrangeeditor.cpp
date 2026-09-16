@@ -1,6 +1,7 @@
 #include "lightrangeeditor.h"
 
 #include <Tempest/Painter>
+#include <Tempest/Rect>
 #include <algorithm>
 
 #include "mainwindow.h"
@@ -38,19 +39,31 @@ void LightRangeEditor::setValueFromX(size_t row, int x) {
   float t = float(x-trackX)/float(trackW);
   t = std::clamp(t, 0.f, 1.f);
   float newVal = t*maxVal;
-  if(std::abs(table[row].corrected - newVal) < 0.5f)  // nic sie nie zmienilo - pomin
+
+  if(std::abs(table[row].corrected - newVal) < 0.5f)
     return;
 
-  table[row].corrected = t*maxVal;
+  table[row].corrected = newVal;
 
-    if(auto* w = Gothic::inst().world())
+  if(auto* w = Gothic::inst().world())
     const_cast<LightGroup&>(w->view()->lights()).invalidateAll();
-
 
   update();
   }
 
 void LightRangeEditor::mouseDownEvent(MouseEvent& e) {
+  if(saveButtonRect().contains(e.x, e.y)) {
+    LightGroup::saveRangeMap();
+    return;
+    }
+  if(loadButtonRect().contains(e.x, e.y)) {
+    LightGroup::loadRangeMap();
+    if(auto* w = Gothic::inst().world())
+      const_cast<LightGroup&>(w->view()->lights()).invalidateAll();
+    update();
+    return;
+    }
+
   int row = rowAt(e.y);
   if(row<0 || e.x<trackX || e.x>trackX+trackW)
     return;
@@ -65,6 +78,8 @@ void LightRangeEditor::mouseMoveEvent(MouseEvent& e) {
   }
 
 void LightRangeEditor::mouseUpEvent(MouseEvent&) {
+  if(dragRow>=0)
+    LightGroup::saveRangeMap();   // <- zapisz dopiero na koniec przeciągania
   dragRow = -1;
   }
 
@@ -95,7 +110,7 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
   Painter p(e);
 
   const int panelW = trackX + trackW + 20;
-  const int panelH = 10 + int(table.size())*rowH + 10;
+  const int panelH = 10 + int(table.size())*rowH + 6 + 24 + 10;  // + wysokosc przyciskow + margines
 
   // tło TYLKO pod panelem, nie pod całym ekranem
   p.setBrush(Color(0,0,0,0.75f));
@@ -121,4 +136,29 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
 
     y += rowH;
     }
+
+    auto saveBtn = saveButtonRect();
+    auto loadBtn = loadButtonRect();
+
+    p.setBrush(Color(0.2f,0.5f,0.2f,1.f));
+    p.drawRect(saveBtn);
+    p.setPen(Color(1,1,1,1));
+    fnt.drawText(p, saveBtn.x+16, saveBtn.y+16, "SAVE");
+
+    p.setBrush(Color(0.5f,0.35f,0.15f,1.f));
+    p.drawRect(loadBtn);
+    p.setPen(Color(1,1,1,1));
+    fnt.drawText(p, loadBtn.x+16, loadBtn.y+16, "LOAD");
+  }
+
+Rect LightRangeEditor::saveButtonRect() const {
+  auto& table = LightGroup::rangeMap();
+  int btnY = 10 + int(table.size())*rowH + 6;
+  return Rect(10, btnY, 80, 24);
+  }
+
+Rect LightRangeEditor::loadButtonRect() const {
+  auto r = saveButtonRect();
+  r.x += r.w + 10;
+  return r;
   }

@@ -12,86 +12,89 @@
 #include "utils/dbgpainter.h"
 #include "gothic.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wtemplate-body"
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/error/en.h>
+#pragma GCC diagnostic pop
+#include <Tempest/File>
+
+#include "utils/fileutil.h"
+
 using namespace Tempest;
 
 static float clampRange(float r) {
   return std::min(r, 2000.f); //this could be reduced to 300
   }
 
-// struct RangeMapPoint {
-//   float original;
-//   float corrected;
-//   };
+static const char16_t* RANGE_MAP_FILE = u"lightranges.json";
 
+static void loadRangeMapOverrides(std::vector<LightGroup::RangeMapPoint>& table) {
+  if(!FileUtil::exists(RANGE_MAP_FILE))
+    return;
 
-// static const RangeMapPoint RANGE_MAP[] = {
-//   {   15.f,  100.f }, 
-//   {   50.f,  100.f },  
-//   {   80.f,  100.f },  // NW_STANDART_DARKBLUE
-//   {  100.f,  100.f },  // FIRESMALL, AURA
-//   {  150.f,  150.f },  // DEFAULTLIGHT_DARKBLUE
-//   {  200.f,  200.f },  // CITY
-//   {  250.f,  250.f },  // NW_STANDART_DARKBLUE, NW_STANDART_FIRE_DYNAMIC
-//   {  300.f,  300.f },  // NW_STANDART_CRAWLER, AMBIENCE_300, DEMONTOWER_SMALL_LIGHT
-//   {  350.f,  350.f },  // AMBIENCE_ENTRANCE_500, DARK
-//   {  400.f,  400.f },  // AMBIENCE_IN_FRONT_OF_WINDOW, AMBIENCE_500, DARKROOMBLUE
-//   {  500.f,  500.f },  // FIRE_STAT, CRYSTAL_01, FACKEL_FEUER, BANDITEN, FX_LIGHT1
-//   {  600.f,  600.f },  // VALLEY_DUNGEON_600, CRYSTAL_ROSE_600, FACKEL_FEUER
-//   {  650.f,  650.f },  // AURA (small)
-//   {  700.f,  700.f },  // FIRE_SMALL_02, DEMONTOWER_LIGHT_02, LIGHT, HELL_RED
-//   {  800.f,  800.f },  // NW_STANDART_FIRE_STATIC, HELLRED_DYN
-//   {  900.f,  900.f },  // NW_STANDART_FIRE_STATIC, FIRE_STAT
-//   { 1000.f,  1000.f },  // FIRESMALL, CRYSTAL_02, DARK_CANYON_1000
-//   { 1200.f,  300.f },  // LIGHT
-//   { 1500.f,  3000.f },  // INROOM_DARKBLUE, HELLES FEUER
-//   { 2000.f,  3000.f },  // NW_STANDART_DARKBLUE
-//   { 3000.f,  3000.f },  // AURA (large), TEST
-// };
+  try {
+    Tempest::RFile f(RANGE_MAP_FILE);
+    std::string    json(f.size(), ' ');
+    f.read(json.data(), json.size());
 
+    rapidjson::Document doc;
+    doc.Parse(json.c_str());
+    if(doc.HasParseError() || !doc.IsArray()) {
+      Log::e("lightranges.json: parse error - ", rapidjson::GetParseError_En(doc.GetParseError()));
+      return;
+      }
 
-// static float correctedRange(float range) {
-//   constexpr size_t count = sizeof(RANGE_MAP)/sizeof(RANGE_MAP[0]);
-
-//   if(range<=RANGE_MAP[0].original)
-//     return RANGE_MAP[0].corrected;
-//   if(range>=RANGE_MAP[count-1].original)
-//     return RANGE_MAP[count-1].corrected;
-
-//   for(size_t i=1; i<count; ++i) {
-//     if(range<=RANGE_MAP[i].original) {
-//       const auto& a = RANGE_MAP[i-1];
-//       const auto& b = RANGE_MAP[i];
-//       float t = (range-a.original)/(b.original-a.original);
-//       return a.corrected + t*(b.corrected-a.corrected);
-//       }
-//     }
-//   return range; // nieosiagalne, ale kompilator wymaga zwrotu
-//   }
+    for(auto& e : doc.GetArray()) {
+      if(!e.IsObject() || !e.HasMember("original") || !e.HasMember("corrected"))
+        continue;
+      float orig = float(e["original"].GetDouble());
+      float corr = float(e["corrected"].GetDouble());
+      for(auto& p : table) {
+        if(std::abs(p.original-orig) < 0.01f) {
+          p.corrected = corr;
+          break;
+          }
+        }
+      }
+    Log::i("lightranges.json: loaded ", doc.Size(), " overrides");
+    }
+  catch(...) {
+    Log::e("unable to read \"lightranges.json\"");
+    }
+  }
 
 std::vector<LightGroup::RangeMapPoint>& LightGroup::rangeMap() {
-  static std::vector<RangeMapPoint> table = {
-    {   15.f,  100.f },
-    {   50.f,  100.f },
-    {   80.f,  100.f },  // NW_STANDART_DARKBLUE
-    {  100.f,  100.f },  // FIRESMALL, AURA
-    {  150.f,  150.f },  // DEFAULTLIGHT_DARKBLUE
-    {  200.f,  200.f },  // CITY
-    {  250.f,  250.f },  // NW_STANDART_DARKBLUE, NW_STANDART_FIRE_DYNAMIC
-    {  300.f,  300.f },  // NW_STANDART_CRAWLER, AMBIENCE_300, DEMONTOWER_SMALL_LIGHT
-    {  350.f,  350.f },  // AMBIENCE_ENTRANCE_500, DARK
-    {  400.f,  400.f },  // AMBIENCE_IN_FRONT_OF_WINDOW, AMBIENCE_500, DARKROOMBLUE
-    {  500.f,  500.f },  // FIRE_STAT, CRYSTAL_01, FACKEL_FEUER, BANDITEN, FX_LIGHT1
-    {  600.f,  600.f },  // VALLEY_DUNGEON_600, CRYSTAL_ROSE_600, FACKEL_FEUER
-    {  650.f,  650.f },  // AURA (small)
-    {  700.f,  700.f },  // FIRE_SMALL_02, DEMONTOWER_LIGHT_02, LIGHT, HELL_RED
-    {  800.f,  800.f },  // NW_STANDART_FIRE_STATIC, HELLRED_DYN
-    {  900.f,  900.f },  // NW_STANDART_FIRE_STATIC, FIRE_STAT
-    { 1000.f, 1000.f },  // FIRESMALL, CRYSTAL_02, DARK_CANYON_1000
-    { 1200.f,  300.f },  // LIGHT
-    { 1500.f, 3000.f },  // INROOM_DARKBLUE, HELLES FEUER
-    { 2000.f, 3000.f },  // NW_STANDART_DARKBLUE
-    { 3000.f, 3000.f },  // AURA (large), TEST
-    };
+  static std::vector<RangeMapPoint> table = [](){
+    std::vector<RangeMapPoint> t = {
+      {   15.f,  100.f },
+      {   50.f,  100.f },
+      {   80.f,  100.f },
+      {  100.f,  100.f },
+      {  150.f,  150.f },
+      {  200.f,  200.f },
+      {  250.f,  250.f },
+      {  300.f,  300.f },
+      {  350.f,  350.f },
+      {  400.f,  400.f },
+      {  500.f,  500.f },
+      {  600.f,  600.f },
+      {  650.f,  650.f },
+      {  700.f,  700.f },
+      {  800.f,  800.f },
+      {  900.f,  900.f },
+      { 1000.f, 1000.f },
+      { 1200.f,  300.f },
+      { 1500.f, 3000.f },
+      { 2000.f, 3000.f },
+      { 3000.f, 3000.f },
+      };
+    loadRangeMapOverrides(t);   // <- nadpisz wartościami z lightranges.json, jesli istnieje
+    return t;
+    }();
   return table;
   }
 
@@ -510,4 +513,32 @@ void LightGroup::prepareGlobals(Tempest::Encoder<Tempest::CommandBuffer>& cmd, u
   cmd.setBinding(1, patch);
   cmd.setPipeline(Shaders::inst().patch);
   cmd.dispatch(patchBlock.size());
+  }
+
+  void LightGroup::saveRangeMap() {
+  auto& table = rangeMap();
+
+  rapidjson::StringBuffer buf;
+  rapidjson::Writer<rapidjson::StringBuffer> w(buf);
+  w.StartArray();
+  for(auto& p : table) {
+    w.StartObject();
+    w.Key("original");  w.Double(double(p.original));
+    w.Key("corrected"); w.Double(double(p.corrected));
+    w.EndObject();
+    }
+  w.EndArray();
+
+  try {
+    Tempest::WFile f(RANGE_MAP_FILE);
+    f.write(buf.GetString(), buf.GetSize());
+    f.flush();
+    }
+  catch(...) {
+    Log::e("unable to save \"lightranges.json\"");
+    }
+  }
+
+void LightGroup::loadRangeMap() {
+  loadRangeMapOverrides(rangeMap());
   }
