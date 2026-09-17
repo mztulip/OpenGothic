@@ -295,17 +295,32 @@ LightGroup::Light LightGroup::add(std::string_view preset) {
   }
 
 void LightGroup::dbgLights(DbgPainter& p) const {
-  static bool ddraw=false;
+  static bool ddraw=true;
   if(!ddraw)
     return;
 
-  //p.setPen(Color(1,0,0,0.01f));
-  p.setPen(Color(1,0,0,1.f));
+  if(!Gothic::inst().doVobLabels())
+    return;
+
+  auto        camera   = Gothic::inst().camera();
+  const float nearDist = 3000.f*3000.f;   // ten sam promień co drawVobBoxNpcNear
+
+  p.setPen(Color(1,1,0,1.f));  // żółty, żeby odróżnić od reszty etykiet
 
   for(auto& i:lightSourceDesc) {
-    auto pt = i.position();
-    p.drawText(pt, i.debugName());
+    if(!i.isEnabled())
+      continue;
 
+    auto pt = i.position();
+    if(camera!=nullptr && (pt-camera->originLwc()).quadLength() > nearDist)
+      continue;
+
+    float range = correctedRange(i.currentRange());
+    string_frm label("LIGHT: ", i.debugName(), "  range=", int(range));
+
+    p.drawText(pt, label);
+
+    //Maluje znacznik jako X w pozycji światła
     float l = 10;
     p.drawLine(pt-Vec3(l,0,0),pt+Vec3(l,0,0));
     p.drawLine(pt-Vec3(0,l,0),pt+Vec3(0,l,0));

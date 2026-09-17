@@ -864,6 +864,40 @@ void WorldObjects::drawVobBoxNpcNear(DbgPainter& p) const {
     }
   }
 
+
+void WorldObjects::drawVobLabelsNear(DbgPainter& p) const {
+  auto camera = Gothic::inst().camera();
+  if(camera==nullptr)
+    return;
+  const float nearDist = 3000.f*3000.f;
+
+  p.setPen(Tempest::Color(1,1,1,1));
+
+  for(auto& i:npcNear) {
+    auto pos = i->position();
+    string_frm label("NPC: ", i->displayName());
+    p.drawText(pos, label);
+    }
+
+  for(auto& i:interactiveObj) {
+    auto bbox = i->bBox();
+    auto pos  = (bbox[0]+bbox[1])*0.5f;
+    if((pos-camera->originLwc()).quadLength() > nearDist)
+      continue;
+    string_frm label("INTERACTIVE: ", i->displayName());
+    p.drawText(pos, label);
+    }
+
+  for(auto& i:items) {
+    auto pos = i->midPosition();
+    if((pos-camera->originLwc()).quadLength() > nearDist)
+      continue;
+    string_frm label("ITEM: ", i->displayName());
+    p.drawText(pos, label);
+    }
+  }
+
+  
 Interactive *WorldObjects::availableMob(const Npc &pl, std::string_view dest) {
   const float  dist = MOBSI_SEARCH_DISTANCE;
   Interactive* ret  = nullptr;

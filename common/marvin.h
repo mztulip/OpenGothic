@@ -73,6 +73,8 @@ class Marvin {
       C_LightRangeSet,
       C_LightRangeAdd,
       C_LightRangeDump,
+
+      C_ToggleVobLabels,
       };
 
     struct Cmd {

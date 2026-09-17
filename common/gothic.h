@@ -139,6 +139,9 @@ class Gothic final {
     bool         doVobBox() const { return vobBox; }
     void         setVobBox(bool v) { vobBox = v; }
 
+    bool         doVobLabels() const { return vobLabels; }
+    void         setVobLabels(bool v) { vobLabels = v; }
+
     bool         doVobRays() const { return vobRays; }
     void         setVobRays(bool v) { vobRays = v; }
 
@@ -225,6 +228,7 @@ class Gothic final {
     bool                                    showFpsCounter = false;
     bool                                    showTime       = false;
     bool                                    vobBox         = false;
+    bool                                    vobLabels = false;
     bool                                    vobRays        = false;
     Benchmark                               isBenchmark    = Benchmark::None;
 

@@ -109,6 +109,8 @@ Marvin::Marvin() {
     {"lightrange add %d %f",  C_LightRangeAdd},
     {"lightrange dump",       C_LightRangeDump},
 
+    {"vob labels", C_ToggleVobLabels},
+
     // game
     {"LC1",                        C_Invalid},
     {"LC2",                        C_Invalid},
@@ -367,6 +369,12 @@ bool Marvin::exec(std::string_view v) {
       Gothic::inst().setVobBox(!Gothic::inst().doVobBox());
       return true;
       }
+
+    case C_ToggleVobLabels: {
+      Gothic::inst().setVobLabels(!Gothic::inst().doVobLabels());
+      return true;
+      }
+
     case C_ToggleTime:{
       Gothic::inst().setClock(!Gothic::inst().doClock());
       return true;

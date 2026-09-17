@@ -288,6 +288,11 @@ void MainWindow::paintEvent(PaintEvent& event) {
       world->drawVobBoxNpcNear(dbg);
       }
 
+    if(Gothic::inst().doVobLabels() && c!=nullptr) { 
+      DbgPainter dbg(p,c->viewProj(),w(),h());
+      world->drawVobLabelsNear(dbg);
+      }
+
     if(Gothic::inst().doVobRays() && c!=nullptr) {
       DbgPainter dbg(p,c->viewProj(),w(),h());
       player.drawVobRay(dbg);
