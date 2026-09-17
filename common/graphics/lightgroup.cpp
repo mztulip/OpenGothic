@@ -316,7 +316,8 @@ void LightGroup::dbgLights(DbgPainter& p) const {
       continue;
 
     float range = correctedRange(i.currentRange());
-    string_frm label("LIGHT: ", i.debugName(), "  range=", int(range));
+    float orig = i.currentRange();
+    string_frm label("LIGHT: ", i.debugName(), "  orig=", int(orig), "  range=", int(range));
 
     p.drawText(pt, label);
 
