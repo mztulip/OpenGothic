@@ -4,7 +4,7 @@
 BUILD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Katalog z executable OpenGothic
-DIR="$BUILD_DIR/opengothic"
+DIR="$BUILD_DIR/build/opengothic"
 
 # Instalacja Gothic 2 używana jako źródło danych
 GAME="/home/mz/.wine/drive_c/Program Files (x86)/JoWood/Gothic II"
