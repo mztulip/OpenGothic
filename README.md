@@ -5,8 +5,7 @@ This fork of [Try/OpenGothic](https://github.com/Try/OpenGothic) adds an in-game
 <!-- TODO: video -->
 <!-- [![demo](link-to-thumbnail)](link-to-video) -->
 
-<!-- TODO: screenshot -->
-<!-- ![Light Range Editor](docs/lightrangeeditor.png) -->
+![Screenshoot](scr1.png)
 
 ### 🎚️ Light Range Editor — live light range tuning
 

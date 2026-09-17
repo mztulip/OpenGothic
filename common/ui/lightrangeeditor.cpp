@@ -1,8 +1,6 @@
 #include "lightrangeeditor.h"
 
 #include <Tempest/Painter>
-#include <Tempest/Rect>
-#include <Tempest/Log>
 #include <algorithm>
 
 #include "mainwindow.h"
@@ -14,17 +12,46 @@
 
 using namespace Tempest;
 
-
 LightRangeEditor::LightRangeEditor(MainWindow& owner):mainWindow(owner) {
   setSizePolicy(Fixed);
-  setSizeHint(Size(trackX+trackW+20, 10));
   setVisible(false);
+
+  // <-- TUTAJ dodajesz kolejne przełączniki, po jednej linii każdy
+  toggles.push_back({"VOB LABELS", [](){ return Gothic::inst().doVobLabels(); }, [](bool v){ Gothic::inst().setVobLabels(v); }});
+  toggles.push_back({"VOB BOX",    [](){ return Gothic::inst().doVobBox();    }, [](bool v){ Gothic::inst().setVobBox(v);    }});
+  toggles.push_back({"VOB RAYS",   [](){ return Gothic::inst().doVobRays();   }, [](bool v){ Gothic::inst().setVobRays(v);   }});
+  toggles.push_back({"FPS",        [](){ return Gothic::inst().doFrate();     }, [](bool v){ Gothic::inst().setFRate(v);     }});
+  toggles.push_back({"CLOCK",      [](){ return Gothic::inst().doClock();     }, [](bool v){ Gothic::inst().setClock(v);     }});
   }
-
-
 
 void LightRangeEditor::toggle() {
   setVisible(!isVisible());
+  }
+
+int LightRangeEditor::togglesRowCount() const {
+  return int((toggles.size()+togglesPerRow-1)/togglesPerRow);
+  }
+
+Rect LightRangeEditor::saveButtonRect() const {
+  auto& table = LightGroup::rangeMap();
+  int y = 10 + int(table.size())*rowH + 6;
+  return Rect(10, y, 80, btnH);
+  }
+
+Rect LightRangeEditor::loadButtonRect() const {
+  auto r = saveButtonRect();
+  r.x += r.w + 10;
+  return r;
+  }
+
+Rect LightRangeEditor::toggleButtonRect(size_t idx) const {
+  auto save = saveButtonRect();
+  int  y0   = save.y + btnH + 14;
+
+  int col = int(idx) % togglesPerRow;
+  int row = int(idx) / togglesPerRow;
+
+  return Rect(10 + col*(btnW+btnGap), y0 + row*(btnH+btnGap), btnW, btnH);
   }
 
 int LightRangeEditor::rowAt(int y) const {
@@ -37,15 +64,13 @@ int LightRangeEditor::rowAt(int y) const {
 
 void LightRangeEditor::setValueFromX(size_t row, int x) {
   auto& table = LightGroup::rangeMap();
-  float t = float(x-trackX)/float(trackW);
-  t = std::clamp(t, 0.f, 1.f);
+  float t = std::clamp(float(x-trackX)/float(trackW), 0.f, 1.f);
   float newVal = t*maxVal;
 
   if(std::abs(table[row].corrected - newVal) < 0.5f)
     return;
 
   table[row].corrected = newVal;
-
   if(auto* w = Gothic::inst().world())
     const_cast<LightGroup&>(w->view()->lights()).invalidateAll();
 
@@ -57,20 +82,20 @@ void LightRangeEditor::mouseDownEvent(MouseEvent& e) {
     LightGroup::saveRangeMap();
     return;
     }
-
   if(loadButtonRect().contains(e.x, e.y)) {
     LightGroup::loadRangeMap();
-
-    auto& table = LightGroup::rangeMap();
-    for(size_t i=0; i<table.size(); ++i)
-        Tempest::Log::i("after load[",i,"] corrected=",table[i].corrected);
-
     if(auto* w = Gothic::inst().world())
       const_cast<LightGroup&>(w->view()->lights()).invalidateAll();
-
-    dragRow = -1;
     update();
     return;
+    }
+
+  for(size_t i=0; i<toggles.size(); ++i) {
+    if(toggleButtonRect(i).contains(e.x, e.y)) {
+      toggles[i].set(!toggles[i].get());
+      update();
+      return;
+      }
     }
 
   int row = rowAt(e.y);
@@ -87,20 +112,17 @@ void LightRangeEditor::mouseMoveEvent(MouseEvent& e) {
   }
 
 void LightRangeEditor::mouseUpEvent(MouseEvent&) {
-    dragRow = -1;
+  dragRow = -1;
   }
 
 void LightRangeEditor::mouseWheelEvent(MouseEvent& e) {
   int row = rowAt(e.y);
-  if(row<0)
-    return;
-
-  if(row<0 || e.x<trackX-40 || e.x>trackX+trackW)  // -40 zeby objac tez etykiete
+  if(row<0 || e.x<trackX-40 || e.x>trackX+trackW)
     return;
   auto& table = LightGroup::rangeMap();
   table[size_t(row)].corrected = std::max(0.f, table[size_t(row)].corrected + (e.delta>0 ? 100.f : -100.f));
 
-    if(auto* w = Gothic::inst().world())
+  if(auto* w = Gothic::inst().world())
     const_cast<LightGroup&>(w->view()->lights()).invalidateAll();
 
   update();
@@ -116,10 +138,10 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
 
   Painter p(e);
 
-  const int panelW = trackX + trackW + 20;
-  const int panelH = 10 + int(table.size())*rowH + 6 + 24 + 10;  // + wysokosc przyciskow + margines
+  const int togglesRows = togglesRowCount();
+  const int panelW = std::max(trackX+trackW+20, 10+togglesPerRow*(btnW+btnGap));
+  const int panelH = saveButtonRect().y + btnH + 14 + togglesRows*(btnH+btnGap) + 10;
 
-  // tło TYLKO pod panelem, nie pod całym ekranem
   p.setBrush(Color(0,0,0,0.75f));
   p.drawRect(0, 0, panelW, panelH);
 
@@ -144,28 +166,26 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
     y += rowH;
     }
 
-    auto saveBtn = saveButtonRect();
-    auto loadBtn = loadButtonRect();
+  auto saveBtn = saveButtonRect();
+  auto loadBtn = loadButtonRect();
 
-    p.setBrush(Color(0.2f,0.5f,0.2f,1.f));
-    p.drawRect(saveBtn);
+  p.setBrush(Color(0.2f,0.5f,0.2f,1.f));
+  p.drawRect(saveBtn);
+  p.setPen(Color(1,1,1,1));
+  fnt.drawText(p, saveBtn.x+16, saveBtn.y+16, "SAVE");
+
+  p.setBrush(Color(0.5f,0.35f,0.15f,1.f));
+  p.drawRect(loadBtn);
+  p.setPen(Color(1,1,1,1));
+  fnt.drawText(p, loadBtn.x+16, loadBtn.y+16, "LOAD");
+
+  for(size_t i=0; i<toggles.size(); ++i) {
+    auto r  = toggleButtonRect(i);
+    bool on = toggles[i].get();
+
+    p.setBrush(on ? Color(0.2f,0.6f,0.2f,1.f) : Color(0.3f,0.3f,0.3f,1.f));
+    p.drawRect(r);
     p.setPen(Color(1,1,1,1));
-    fnt.drawText(p, saveBtn.x+16, saveBtn.y+16, "SAVE");
-
-    p.setBrush(Color(0.5f,0.35f,0.15f,1.f));
-    p.drawRect(loadBtn);
-    p.setPen(Color(1,1,1,1));
-    fnt.drawText(p, loadBtn.x+16, loadBtn.y+16, "LOAD");
-  }
-
-Rect LightRangeEditor::saveButtonRect() const {
-  auto& table = LightGroup::rangeMap();
-  int btnY = 10 + int(table.size())*rowH + 6;
-  return Rect(10, btnY, 80, 24);
-  }
-
-Rect LightRangeEditor::loadButtonRect() const {
-  auto r = saveButtonRect();
-  r.x += r.w + 10;
-  return r;
+    fnt.drawText(p, r.x+8, r.y+16, toggles[i].label);
+    }
   }

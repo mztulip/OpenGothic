@@ -1,6 +1,10 @@
 #pragma once
 
 #include <Tempest/Widget>
+#include <Tempest/Rect>
+#include <functional>
+#include <vector>
+
 #include "graphics/lightgroup.h"
 
 class MainWindow;
@@ -12,23 +16,38 @@ class LightRangeEditor : public Tempest::Widget {
     void toggle();
 
   private:
+    struct ToggleDef {
+      const char*               label;
+      std::function<bool()>     get;
+      std::function<void(bool)> set;
+      };
+
     void paintEvent     (Tempest::PaintEvent& e) override;
     void mouseDownEvent (Tempest::MouseEvent& e) override;
     void mouseUpEvent   (Tempest::MouseEvent& e) override;
     void mouseMoveEvent (Tempest::MouseEvent& e) override;
     void mouseWheelEvent(Tempest::MouseEvent& e) override;
     void keyDownEvent   (Tempest::KeyEvent&   e) override;
-    Tempest::Rect saveButtonRect() const;
-    Tempest::Rect loadButtonRect() const;
-    
+
     int  rowAt(int y) const;
     void setValueFromX(size_t row, int x);
 
-    MainWindow& mainWindow;
-    int         dragRow = -1;
+    Tempest::Rect saveButtonRect()          const;
+    Tempest::Rect loadButtonRect()          const;
+    Tempest::Rect toggleButtonRect(size_t idx) const;
+    int           togglesRowCount()         const;
 
-    static constexpr int   rowH   = 20;
-    static constexpr int   trackX = 220;
-    static constexpr int   trackW = 400;
-    static constexpr float maxVal = 3000.f;
+    MainWindow&            mainWindow;
+    int                    dragRow = -1;
+    std::vector<ToggleDef> toggles;
+
+    static constexpr int   rowH          = 20;
+    static constexpr int   trackX        = 220;
+    static constexpr int   trackW        = 400;
+    static constexpr float maxVal        = 3000.f;
+
+    static constexpr int   btnW          = 140;
+    static constexpr int   btnH          = 24;
+    static constexpr int   btnGap        = 8;
+    static constexpr int   togglesPerRow = 3;
   };
