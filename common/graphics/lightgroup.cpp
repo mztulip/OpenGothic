@@ -303,7 +303,7 @@ void LightGroup::dbgLights(DbgPainter& p) const {
     return;
 
   auto        camera   = Gothic::inst().camera();
-  const float nearDist = 3000.f*3000.f;   // ten sam promień co drawVobBoxNpcNear
+  const float nearDist = 100.f*3000.f;
 
   p.setPen(Color(1,1,0,1.f));  // żółty, żeby odróżnić od reszty etykiet
 

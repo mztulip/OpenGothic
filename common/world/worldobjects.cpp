@@ -869,7 +869,7 @@ void WorldObjects::drawVobLabelsNear(DbgPainter& p) const {
   auto camera = Gothic::inst().camera();
   if(camera==nullptr)
     return;
-  const float nearDist = 3000.f*3000.f;
+  const float nearDist = 100.f*3000.f;
 
   p.setPen(Tempest::Color(1,1,1,1));
 
@@ -897,7 +897,7 @@ void WorldObjects::drawVobLabelsNear(DbgPainter& p) const {
     }
   }
 
-  
+
 Interactive *WorldObjects::availableMob(const Npc &pl, std::string_view dest) {
   const float  dist = MOBSI_SEARCH_DISTANCE;
   Interactive* ret  = nullptr;
