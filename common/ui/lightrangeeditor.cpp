@@ -2,6 +2,7 @@
 
 #include <Tempest/Painter>
 #include <Tempest/Rect>
+#include <Tempest/Log>
 #include <algorithm>
 
 #include "mainwindow.h"
@@ -56,10 +57,18 @@ void LightRangeEditor::mouseDownEvent(MouseEvent& e) {
     LightGroup::saveRangeMap();
     return;
     }
+
   if(loadButtonRect().contains(e.x, e.y)) {
     LightGroup::loadRangeMap();
+
+    auto& table = LightGroup::rangeMap();
+    for(size_t i=0; i<table.size(); ++i)
+        Tempest::Log::i("after load[",i,"] corrected=",table[i].corrected);
+
     if(auto* w = Gothic::inst().world())
       const_cast<LightGroup&>(w->view()->lights()).invalidateAll();
+
+    dragRow = -1;
     update();
     return;
     }
@@ -78,9 +87,7 @@ void LightRangeEditor::mouseMoveEvent(MouseEvent& e) {
   }
 
 void LightRangeEditor::mouseUpEvent(MouseEvent&) {
-  if(dragRow>=0)
-    LightGroup::saveRangeMap();   // <- zapisz dopiero na koniec przeciągania
-  dragRow = -1;
+    dragRow = -1;
   }
 
 void LightRangeEditor::mouseWheelEvent(MouseEvent& e) {
