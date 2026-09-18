@@ -16,4 +16,4 @@ export DYLD_LIBRARY_PATH="$DIR:$DYLD_LIBRARY_PATH"
 
 exec "$DIR/Gothic2Notr" \
     -g "$GAME" \
-    -devmode -gi 1 -rtsm 1
+    -devmode -gi 1 -rtsm 1 -saves ../../light_test_saves
