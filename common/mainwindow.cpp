@@ -51,7 +51,6 @@ MainWindow::MainWindow(Device& device)
 
   if(!CommandLine::inst().isWindowMode()) {
     setFullscreen(true);
-    setCursorShape(CursorShape::Hidden);
     }
 
   //renderer.resetSwapchain();
@@ -1238,6 +1237,7 @@ void MainWindow::clearInput() {
 
 void MainWindow::setFullscreen(bool fs) {
   SystemApi::setAsFullscreen(hwnd(),fs);
+  setCursorShape(fs ? CursorShape::Hidden : CursorShape::Arrow);
   }
 
 void MainWindow::render(){
