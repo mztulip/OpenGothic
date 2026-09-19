@@ -55,3 +55,11 @@ vob labels - toggle vob labels
 |---|---|
 | F12 | Light Range Editor (sliders + toggles) |
 | Esc | Close Light Range Editor |
+
+
+### 📁 Custom Save Games Directory (`-saves`)
+
+New command-line option allowing you to redirect save files (`.sav`) and their UI thumbnails to a custom directory instead of the default game folder:
+
+```bash
+./Gothic2Notr -g "/path/to/Gothic II" -saves "/path/to/custom_saves"
