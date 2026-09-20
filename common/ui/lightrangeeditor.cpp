@@ -9,19 +9,26 @@
 #include "resources.h"
 #include "gothic.h"
 #include "world/world.h"
+#include "graphics/sky/sky.h"
 
 using namespace Tempest;
 
 LightRangeEditor::LightRangeEditor(MainWindow& owner):mainWindow(owner) {
-  setSizePolicy(Fixed);
-  setVisible(false);
+    setSizePolicy(Fixed);
+    setVisible(false);
 
-  // <-- TUTAJ dodajesz kolejne przełączniki, po jednej linii każdy
-  toggles.push_back({"VOB LABELS", [](){ return Gothic::inst().doVobLabels(); }, [](bool v){ Gothic::inst().setVobLabels(v); }});
-  toggles.push_back({"VOB BOX",    [](){ return Gothic::inst().doVobBox();    }, [](bool v){ Gothic::inst().setVobBox(v);    }});
-  toggles.push_back({"VOB RAYS",   [](){ return Gothic::inst().doVobRays();   }, [](bool v){ Gothic::inst().setVobRays(v);   }});
-  toggles.push_back({"FPS",        [](){ return Gothic::inst().doFrate();     }, [](bool v){ Gothic::inst().setFRate(v);     }});
-  toggles.push_back({"CLOCK",      [](){ return Gothic::inst().doClock();     }, [](bool v){ Gothic::inst().setClock(v);     }});
+    toggles.push_back({"VOB LABELS", [](){ return Gothic::inst().doVobLabels(); }, [](bool v){ Gothic::inst().setVobLabels(v); }});
+    toggles.push_back({"VOB BOX",    [](){ return Gothic::inst().doVobBox();    }, [](bool v){ Gothic::inst().setVobBox(v);    }});
+    toggles.push_back({"VOB RAYS",   [](){ return Gothic::inst().doVobRays();   }, [](bool v){ Gothic::inst().setVobRays(v);   }});
+    toggles.push_back({"FPS",        [](){ return Gothic::inst().doFrate();     }, [](bool v){ Gothic::inst().setFRate(v);     }});
+    toggles.push_back({"CLOCK",      [](){ return Gothic::inst().doClock();     }, [](bool v){ Gothic::inst().setClock(v);     }});
+    toggles.push_back({"AMBIENT", [](){ return Gothic::inst().doAmbient(); }, [](bool v){ Gothic::inst().setAmbient(v); }});
+    toggles.push_back({"SKY",     [](){ return Gothic::inst().doSkyDraw(); }, [](bool v){ Gothic::inst().setSkyDraw(v); }});
+    toggles.push_back({"SUN/MOON",[](){ return Gothic::inst().doSunMoon(); }, [](bool v){ Gothic::inst().setSunMoon(v); }});
+    toggles.push_back({"FOG/RAYS", [](){ return Gothic::inst().doFog(); }, [](bool v){ Gothic::inst().setFog(v); }});
+
+    extraSliders.push_back({"Sun mul",     [](){ return Sky::sunMultiplier(); },     [](float v){ Sky::sunMultiplier()     = v; }, 0.f, 3.f});
+    extraSliders.push_back({"Ambient mul", [](){ return Sky::ambientMultiplier(); }, [](float v){ Sky::ambientMultiplier() = v; }, 0.f, 3.f});
   }
 
 void LightRangeEditor::toggle() {
@@ -98,6 +105,13 @@ void LightRangeEditor::mouseDownEvent(MouseEvent& e) {
       }
     }
 
+   int exIdx = extraSliderAt(e.y);
+    if(exIdx>=0 && e.x>=trackX && e.x<=trackX+trackW) {
+    setExtraSliderFromX(size_t(exIdx), e.x);
+    dragRow = -1000 - exIdx;   // specjalne kodowanie: ujemne = suwak dodatkowy
+    return;
+    }
+
   int row = rowAt(e.y);
   if(row<0 || e.x<trackX || e.x>trackX+trackW)
     return;
@@ -106,9 +120,13 @@ void LightRangeEditor::mouseDownEvent(MouseEvent& e) {
   }
 
 void LightRangeEditor::mouseMoveEvent(MouseEvent& e) {
-  if(dragRow<0)
-    return;
-  setValueFromX(size_t(dragRow), e.x);
+    if(dragRow<=-1000) {
+        setExtraSliderFromX(size_t(-1000-dragRow), e.x);
+        return;
+    }
+    if(dragRow<0)
+        return;
+    setValueFromX(size_t(dragRow), e.x);
   }
 
 void LightRangeEditor::mouseUpEvent(MouseEvent&) {
@@ -138,9 +156,11 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
 
   Painter p(e);
 
-  const int togglesRows = togglesRowCount();
-  const int panelW = std::max(trackX+trackW+20, 10+togglesPerRow*(btnW+btnGap));
-  const int panelH = saveButtonRect().y + btnH + 14 + togglesRows*(btnH+btnGap) + 10;
+    const int togglesRows = togglesRowCount();
+    const int panelW = trackX + trackW + 20;
+    const int panelH = extraSliders.empty()
+        ? (saveButtonRect().y + btnH + 14 + togglesRows*(btnH+btnGap) + 10)
+        : (lightSlidersBottom() + btnH + 14 + togglesRows*(btnH+btnGap) + 14 + int(extraSliders.size())*rowH + 10);
 
   p.setBrush(Color(0,0,0,0.75f));
   p.drawRect(0, 0, panelW, panelH);
@@ -188,4 +208,45 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
     p.setPen(Color(1,1,1,1));
     fnt.drawText(p, r.x+8, r.y+16, toggles[i].label);
     }
+
+    for(size_t i=0; i<extraSliders.size(); ++i) {
+    auto& s = extraSliders[i];
+    auto  r = extraSliderRect(i);
+
+    string_frm label(s.label, ": ", s.get());
+    p.setPen(Color(1,1,1,1));
+    fnt.drawText(p, 10, r.y+rowH-14, label);
+
+    p.setBrush(Color(0.2f,0.2f,0.2f,1.f));
+    p.drawRect(r);
+
+    float t = std::clamp((s.get()-s.minV)/(s.maxV-s.minV), 0.f, 1.f);
+    p.setBrush(Color(0.7f,0.3f,0.8f,1.f));
+    p.drawRect(r.x, r.y, int(float(r.w)*t), r.h);
+    }
+  }
+
+int LightRangeEditor::lightSlidersBottom() const {
+  auto& table = LightGroup::rangeMap();
+  return 10 + int(table.size())*rowH;
+  }
+
+Rect LightRangeEditor::extraSliderRect(size_t idx) const {
+  int y = lightSlidersBottom() + btnH + 14 + togglesRowCount()*(btnH+btnGap) + 14 + int(idx)*rowH;
+  return Rect(trackX, y+4, trackW, rowH-10);
+  }
+
+int LightRangeEditor::extraSliderAt(int y) const {
+  int y0 = lightSlidersBottom() + btnH + 14 + togglesRowCount()*(btnH+btnGap) + 14;
+  int row = (y-y0)/rowH;
+  if(row<0 || size_t(row)>=extraSliders.size())
+    return -1;
+  return row;
+  }
+
+void LightRangeEditor::setExtraSliderFromX(size_t idx, int x) {
+  auto& s = extraSliders[idx];
+  float t = std::clamp(float(x-trackX)/float(trackW), 0.f, 1.f);
+  s.set(s.minV + t*(s.maxV-s.minV));
+  update();
   }

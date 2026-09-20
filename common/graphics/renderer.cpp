@@ -683,9 +683,11 @@ void Renderer::draw(Tempest::Attachment& result, Encoder<CommandBuffer>& cmd, ui
 
   cmd.setFramebuffer({{sceneLinear, Tempest::Discard, Tempest::Preserve}}, {zbuffer, Tempest::Readonly});
   drawShadowResolve(cmd, wview);
-  // drawAmbient(cmd, wview);
+  if(Gothic::inst().doAmbient())
+    drawAmbient(cmd, wview);
   drawLights(cmd, wview);
-  // drawSky(cmd, wview);
+  if(Gothic::inst().doSkyDraw())
+    drawSky(cmd, wview);
   drawLightTreeDbg(sceneLinear, cmd, wview);
 
   stashSceneAux(cmd);
@@ -694,7 +696,8 @@ void Renderer::draw(Tempest::Attachment& result, Encoder<CommandBuffer>& cmd, ui
 
   cmd.setFramebuffer({{sceneLinear, Tempest::Preserve, Tempest::Preserve}}, {zbuffer, Tempest::Preserve, Tempest::Preserve});
   cmd.setDebugMarker("Sun&Moon");
-  // drawSunMoon(cmd, wview);
+  if(Gothic::inst().doSunMoon())
+    drawSunMoon(cmd, wview);
   cmd.setDebugMarker("Translucent");
   wview.drawTranslucent(cmd, fId);
 
@@ -715,7 +718,7 @@ void Renderer::draw(Tempest::Attachment& result, Encoder<CommandBuffer>& cmd, ui
   if(camera.isInWater()) {
     cmd.setDebugMarker("Underwater");
     drawUnderwater(cmd, wview);
-    } else {
+    } else if(Gothic::inst().doFog()) {
     cmd.setDebugMarker("Fog");
     drawFog(cmd, wview);
     }

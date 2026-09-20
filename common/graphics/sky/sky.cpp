@@ -120,8 +120,6 @@ void Sky::updateLight(const gtime gameTime) {
     //sun.setDir(0, 1, 0); //debug
   }
 
-  static float sunMul = 0.0f;
-  static float ambMul = 0.0f;
   // static auto  groundAlbedo = Vec3(0.34f, 0.42f, 0.26f); // Foliage(MacBeth)
   // static auto  groundAlbedo = Vec3(0.39f, 0.40f, 0.33f);
   static auto  groundAlbedo = Vec3(0.3f); // aligned to sky-shading
@@ -145,8 +143,8 @@ void Sky::updateLight(const gtime gameTime) {
 
   ambient *= 0.3f;            // tuneup
 
-  sun.setColor(direct*sunMul);
-  ambient = ambient*ambMul;
+  sun.setColor(direct*Sky::sunMultiplier());
+  ambient = ambient*Sky::ambientMultiplier();
   }
 
 Vec2 Sky::cloudsOffset(int layer, uint64_t tickCount) const {
@@ -186,4 +184,14 @@ const Texture2d* Sky::implSkyTexture(std::string_view name, bool day, size_t id)
   if(r==&Resources::fallbackTexture())
     return &Resources::fallbackBlack(); //format error
   return r;
+  }
+
+float& Sky::sunMultiplier() {
+  static float v = 1.f;
+  return v;
+  }
+
+float& Sky::ambientMultiplier() {
+  static float v = 1.f;
+  return v;
   }

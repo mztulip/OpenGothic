@@ -20,7 +20,15 @@ class LightRangeEditor : public Tempest::Widget {
       const char*               label;
       std::function<bool()>     get;
       std::function<void(bool)> set;
-      };
+    };
+
+    struct SliderDef {
+        const char*                 label;
+        std::function<float()>      get;
+        std::function<void(float)>  set;
+        float                       minV;
+        float                       maxV;
+    };
 
     void paintEvent     (Tempest::PaintEvent& e) override;
     void mouseDownEvent (Tempest::MouseEvent& e) override;
@@ -50,4 +58,12 @@ class LightRangeEditor : public Tempest::Widget {
     static constexpr int   btnH          = 24;
     static constexpr int   btnGap        = 8;
     static constexpr int   togglesPerRow = 3;
+
+    std::vector<SliderDef>  extraSliders;
+
+    Tempest::Rect extraSliderRect(size_t idx) const;
+    int           extraSliderAt(int y) const;
+    void          setExtraSliderFromX(size_t idx, int x);
+    int           lightSlidersBottom() const;  
+
   };

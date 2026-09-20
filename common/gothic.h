@@ -145,6 +145,18 @@ class Gothic final {
     bool         doVobRays() const { return vobRays; }
     void         setVobRays(bool v) { vobRays = v; }
 
+    bool         doAmbient() const { return ambientOn; }
+    void         setAmbient(bool v) { ambientOn = v; }
+
+    bool         doSkyDraw() const { return skyOn; }
+    void         setSkyDraw(bool v) { skyOn = v; }
+
+    bool         doSunMoon() const { return sunMoonOn; }
+    void         setSunMoon(bool v) { sunMoonOn = v; }
+
+    bool         doFog() const { return fogOn; }
+    void         setFog(bool v) { fogOn = v; }
+
     bool         isBenchmarkMode() const;
     bool         isBenchmarkModeCi() const;
     void         setBenchmarkMode(Benchmark b);
@@ -228,8 +240,13 @@ class Gothic final {
     bool                                    showFpsCounter = false;
     bool                                    showTime       = false;
     bool                                    vobBox         = false;
-    bool                                    vobLabels = false;
+    bool                                    vobLabels      = false;
     bool                                    vobRays        = false;
+    bool                                    ambientOn      = true;
+    bool                                    skyOn          = true;
+    bool                                    sunMoonOn      = true;
+    bool                                    fogOn          = true;
+
     Benchmark                               isBenchmark    = Benchmark::None;
 
     std::string                             wrldDef, plDef, gameDatDef, ouDef;

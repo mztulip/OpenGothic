@@ -34,6 +34,9 @@ class Sky final {
     Tempest::Vec2             cloudsOffset(int layer, uint64_t tickCount) const;
     float                     isNight() const;
 
+    static float& sunMultiplier();
+    static float& ambientMultiplier();
+
   private:
     const Tempest::Texture2d*     skyTexture(std::string_view name, bool day, size_t id);
     const Tempest::Texture2d*     implSkyTexture(std::string_view name, bool day, size_t id);
