@@ -33,6 +33,7 @@ class Renderer final {
     void dbgDraw(Tempest::Painter& painter);
 
     Tempest::Attachment screenshoot(uint8_t frameId);
+    static const char* ambientModeName();
 
   private:
     enum Quality : uint8_t {

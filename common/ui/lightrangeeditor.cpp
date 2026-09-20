@@ -160,9 +160,12 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
 
     const int togglesRows = togglesRowCount();
     const int panelW = trackX + trackW + 20;
-    const int panelH = extraSliders.empty()
+    int panelHcalc = extraSliders.empty()
         ? (saveButtonRect().y + btnH + 14 + togglesRows*(btnH+btnGap) + 10)
         : (lightSlidersBottom() + btnH + 14 + togglesRows*(btnH+btnGap) + 14 + int(extraSliders.size())*rowH + 10);
+    panelHcalc +=  rowH; //Ambient mode text height
+
+    const int panelH = panelHcalc;
 
   p.setBrush(Color(0,0,0,0.75f));
   p.drawRect(0, 0, panelW, panelH);
@@ -226,6 +229,14 @@ void LightRangeEditor::paintEvent(PaintEvent& e) {
     p.setBrush(Color(0.7f,0.3f,0.8f,1.f));
     p.drawRect(r.x, r.y, int(float(r.w)*t), r.h);
     }
+
+    y = extraSliders.empty()
+      ? (saveButtonRect().y + btnH + 14 + togglesRowCount()*(btnH+btnGap) + 20)
+      : (extraSliderRect(extraSliders.size()-1).y + rowH + 10);
+
+    string_frm info("Ambient mode: ", Renderer::ambientModeName());
+    p.setPen(Color(0.6f,1.0f,0.6f,1.f));
+    fnt.drawText(p, 10, y, info);
   }
 
 int LightRangeEditor::lightSlidersBottom() const {

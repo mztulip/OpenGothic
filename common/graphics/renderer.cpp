@@ -2661,6 +2661,16 @@ void Renderer::drawProbesHitDbg(Encoder<CommandBuffer>& cmd) {
   //cmd.draw(nullptr, 0, 36, 0, 1024);
   }
 
+static const char*& ambientModeStorage() {
+  static const char* v = "none";
+  return v;
+  }
+
+const char* Renderer::ambientModeName() {
+  return ambientModeStorage();
+  }
+
+
 void Renderer::drawAmbient(Encoder<CommandBuffer>& cmd, const WorldView& view) {
   static bool enable = true;
   if(!enable)
@@ -2675,6 +2685,7 @@ void Renderer::drawAmbient(Encoder<CommandBuffer>& cmd, const WorldView& view) {
     cmd.setBinding(4, ssao.ssaoBlur, Sampler::nearest(ClampMode::ClampToEdge)); //TODO: remove once splatting is working
     cmd.setBinding(5, surf.surfels);
     cmd.setPipeline(shaders.ambientLightSurf);
+    ambientModeStorage() = "Surfels (IrrC)";
     }
   else if(settings.giMethod==GiMethod::Probes && settings.zCloudShadowScale) {
     cmd.setBinding(3, ssao.ssaoBlur, Sampler::nearest());
@@ -2683,15 +2694,18 @@ void Renderer::drawAmbient(Encoder<CommandBuffer>& cmd, const WorldView& view) {
     cmd.setBinding(6, gi.probes);
     cmd.setBinding(7, gi.probesLighting);
     cmd.setPipeline(shaders.probeAmbient);
+    ambientModeStorage() = "Probes (RT GI)";
     }
   else if(settings.zCloudShadowScale) {
     cmd.setBinding(3, sky.irradianceLut);
     cmd.setBinding(4, ssao.ssaoBlur, Sampler::nearest(ClampMode::ClampToEdge));
     cmd.setPipeline(shaders.ambientLightSsao);
+    ambientModeStorage() = "SSAO only";
     }
   else {
     cmd.setBinding(3, sky.irradianceLut);
     cmd.setPipeline(shaders.ambientLight);
+    ambientModeStorage() = "Flat (cheap)";
     }
   cmd.draw(nullptr, 0, 3);
   }
