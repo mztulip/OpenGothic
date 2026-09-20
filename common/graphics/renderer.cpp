@@ -2782,15 +2782,12 @@ Size Renderer::internalResolution(Tempest::Size src) const {
 
 void Renderer::setGiMethod(GiMethod m) {
   if(!Gothic::options().doRayQuery) {
-    Log::e("setGiMethod: ray query is disabled in options (-rt 0 or missing -rt)");
     return;
     }
   if(m==GiMethod::Probes && !Shaders::isGi1Supported()) {
-    Log::e("setGiMethod: GPU/driver does not support GI Probes (missing VK_KHR_ray_query or other required features)");
     return;
     }
   if(m==GiMethod::IrrC && !Shaders::isGi2Supported()) {
-    Log::e("setGiMethod: GPU/driver does not support GI IrrC (missing VK_KHR_ray_query or other required features)");
     return;
     }
 

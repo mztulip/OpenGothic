@@ -82,6 +82,11 @@ Gothic::Gothic() {
   setBenchmarkMode(CommandLine::inst().isBenchmarkMode());
 
   auto& gpu = Resources::device().properties();
+  Log::i("gpu.raytracing.rayQuery = ", gpu.raytracing.rayQuery ? "true" : "false");   // <- TYMCZASOWO
+if(gpu.raytracing.rayQuery) {
+  opts.doRayQuery = CommandLine::inst().isRayQuery();
+  opts.doGi       = CommandLine::inst().isRtGi();
+  }
   if(gpu.raytracing.rayQuery) {
     opts.doRayQuery = CommandLine::inst().isRayQuery();
     opts.doGi       = CommandLine::inst().isRtGi();
