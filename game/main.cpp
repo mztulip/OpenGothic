@@ -48,12 +48,14 @@ std::unique_ptr<Tempest::AbstractGraphicsApi> mkApi(const CommandLine& g) {
   switch(g.graphicsApi()) {
     case CommandLine::DirectX12:
 #if defined(_MSC_VER)
+      Tempest::Log::i("Graphics backend: DirectX12");
       return std::make_unique<Tempest::DirectX12Api>(flg);
 #else
       break;
 #endif
     case CommandLine::Vulkan:
 #if !defined(__APPLE__)
+      Tempest::Log::i("Graphics backend: Vulkan");
       return std::make_unique<Tempest::VulkanApi>(flg);
 #else
       break;
