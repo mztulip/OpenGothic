@@ -82,6 +82,7 @@ Renderer::Renderer() {
 
   Gothic::inst().onSettingsChanged.bind(this,&Renderer::setupSettings);
   Gothic::inst().toggleGi  .bind(this, &Renderer::toggleGi);
+  Gothic::inst().setGiMethod.bind(this, &Renderer::setGiMethod);
   Gothic::inst().toggleVsm .bind(this, &Renderer::toggleVsm);
   Gothic::inst().toggleRtsm.bind(this, &Renderer::toggleRtsm);
 
@@ -108,6 +109,7 @@ Renderer::Renderer() {
 
 Renderer::~Renderer() {
   Gothic::inst().onSettingsChanged.ubind(this,&Renderer::setupSettings);
+  Gothic::inst().setGiMethod.ubind(this, &Renderer::setGiMethod);
   }
 
 void Renderer::setupSettings() {
@@ -2777,3 +2779,16 @@ Size Renderer::internalResolution(Tempest::Size src) const {
   return Size(src.w/2, src.h/2);
   }
 
+
+void Renderer::setGiMethod(GiMethod m) {
+  if(!Gothic::options().doRayQuery)
+    return;
+  if(m==GiMethod::Probes && !Shaders::isGi1Supported())
+    return;
+  if(m==GiMethod::IrrC && !Shaders::isGi2Supported())
+    return;
+
+  settings.giMethod = m;
+  Resources::device().waitIdle();
+  setupSettings();
+  }

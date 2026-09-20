@@ -23,6 +23,7 @@ class Renderer final {
     void onWorldChanged();
     void setGizmo(bool enable, Tempest::Vec3 center);
     void setLightsHud(const Tempest::Texture2d* tex);
+    void setGiMethod(GiMethod m);
 
     void draw(Tempest::Attachment& result, Tempest::Encoder<Tempest::CommandBuffer>& cmd, uint8_t fId,
               Tempest::VectorImage::Mesh& uiLayer, Tempest::VectorImage::Mesh& numOverlay,
@@ -31,6 +32,7 @@ class Renderer final {
               WorldView& view, const Camera& camera);
 
     void dbgDraw(Tempest::Painter& painter);
+
 
     Tempest::Attachment screenshoot(uint8_t frameId);
     static const char* ambientModeName();

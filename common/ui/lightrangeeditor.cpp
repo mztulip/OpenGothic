@@ -26,6 +26,26 @@ LightRangeEditor::LightRangeEditor(MainWindow& owner):mainWindow(owner) {
     toggles.push_back({"SKY",     [](){ return Gothic::inst().doSkyDraw(); }, [](bool v){ Gothic::inst().setSkyDraw(v); }});
     toggles.push_back({"SUN/MOON",[](){ return Gothic::inst().doSunMoon(); }, [](bool v){ Gothic::inst().setSunMoon(v); }});
     toggles.push_back({"FOG/RAYS", [](){ return Gothic::inst().doFog(); }, [](bool v){ Gothic::inst().setFog(v); }});
+    toggles.push_back({
+    "SSAO",
+    [](){ return Gothic::settingsGetI("ENGINE","zCloudShadowScale")!=0; },
+    [](bool v){ Gothic::settingsSetI("ENGINE","zCloudShadowScale", v?1:0); }
+    });
+    toggles.push_back({
+        "GI: None",
+        [](){ return std::string_view(Renderer::ambientModeName())=="Flat (cheap)" || std::string_view(Renderer::ambientModeName())=="SSAO only"; },
+        [](bool){ Gothic::inst().setGiMethod(GiMethod::None); }
+        });
+        toggles.push_back({
+        "GI: Probes",
+        [](){ return std::string_view(Renderer::ambientModeName())=="Probes (RT GI)"; },
+        [](bool){ Gothic::inst().setGiMethod(GiMethod::Probes); }
+        });
+        toggles.push_back({
+        "GI: IrrC",
+        [](){ return std::string_view(Renderer::ambientModeName())=="Surfels (IrrC)"; },
+        [](bool){ Gothic::inst().setGiMethod(GiMethod::IrrC); }
+        });
 
     extraSliders.push_back({"Sun mul",     [](){ return Sky::sunMultiplier(); },     [](float v){ Sky::sunMultiplier()     = v; }, 0.f, 3.f});
     extraSliders.push_back({"Ambient mul", [](){ return Sky::ambientMultiplier(); }, [](float v){ Sky::ambientMultiplier() = v; }, 0.f, 3.f});

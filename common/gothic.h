@@ -202,6 +202,8 @@ class Gothic final {
     Tempest::Signal<void()>                                             onSessionExit;
     Tempest::Signal<void()>                                             onSettingsChanged;
 
+    Tempest::Signal<void(GiMethod)>                                     setGiMethod;
+
     Tempest::Signal<void()>                                             onBenchmarkFinished;
 
     std::string_view                      messageFromSvm(std::string_view id, int voice) const;
