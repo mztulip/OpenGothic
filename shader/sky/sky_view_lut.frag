@@ -60,8 +60,8 @@ void main() {
   const vec3 viewPos  = vec3(0.0, RPlanet + scene.plPosY, 0.0);
 
   const float DirectSunLux  = scene.GSunIntensity;
-  const float DirectMoonLux = GMoonIntensity;
-  const vec3  moonInt       = NightAmbient/DirectSunLux;
+  const float DirectMoonLux = scene.GMoonIntensity;
+  const vec3  moonInt       = nightAmbient(scene.GMoonIntensity)/DirectSunLux;
 
   float azimuthAngle = (uv.x - 0.5)*2.0*M_PI;
   // Non-linear mapping of altitude. See Section 5.3 of the paper.

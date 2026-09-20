@@ -142,6 +142,7 @@ void SceneGlobals::setSky(const Sky& s) {
   uboGlobalCpu.cloudsDir[1]  = s.cloudsOffset(1, tickCount);
   uboGlobalCpu.isNight       = s.isNight();
   uboGlobalCpu.exposure      = 1;
+  uboGlobalCpu.GMoonIntensity  = Sky::nightAmbientIntensity(); 
   }
 
 void SceneGlobals::setWorld(const WorldView &wview) {

@@ -120,6 +120,7 @@ class SceneGlobals final {
       Tempest::Vec2                   cloudsDir[2] = {};
 
       float                           probeGridBias = 3;
+      float                           GMoonIntensity = 0.36f; 
       };
 
     Tempest::UniformBuffer<UboGlobal> uboGlobalPf[Resources::MaxFramesInFlight][V_Count];

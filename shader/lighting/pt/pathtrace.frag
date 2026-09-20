@@ -303,7 +303,7 @@ vec4 pathtrace(vec3 rayOrigin, vec3 rayDirection) {
       color += thruput*direct*Fd_Lambert;
 
     if(bounce==0)
-      ;//color += thruput*(hit.norm.y*0.25+0.75) * NightAmbient;
+      ;//color += thruput*(hit.norm.y*0.25+0.75) * nightAmbient(scene.GMoonIntensity);
     }
 
   return vec4(color, depth);

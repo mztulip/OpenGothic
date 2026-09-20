@@ -200,3 +200,8 @@ float& Sky::moonMultiplier() {
   static float v = 1.f;
   return v;
   }
+
+float& Sky::nightAmbientIntensity() {
+  static float v = 0.36f;
+  return v;
+  }

@@ -122,7 +122,7 @@ vec3 diffuseLight(float a) {
   float shadow = calcShadow(vec4(shInp.pos,1), 0, scene, textureSm0, textureSm1);
 
   vec3  lcolor  = scene.sunColor * light * shadow;
-  vec3  ambient = scene.ambient + (norm.y*0.25+0.75) * NightAmbient * Fd_Lambert;
+  vec3  ambient = scene.ambient + (norm.y*0.25+0.75) * nightAmbient(scene.GMoonIntensity) * Fd_Lambert;
   vec3  sky     = vec3(0); // TODO: irradiance
 
   return (lcolor + ambient + ambient);

@@ -183,7 +183,7 @@ void main() {
 
   vec3 luminance  = vec3(0);
   luminance += colorSum.rgb;
-  luminance += (norm.y*0.25+0.75) * NightAmbient * Fd_Lambert;
+  luminance += (norm.y*0.25+0.75) * nightAmbient(scene.GMoonIntensity) * Fd_Lambert;
 
   vec3 color = linear;
   color *= luminance;

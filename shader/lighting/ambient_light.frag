@@ -67,7 +67,7 @@ vec3 luminance(vec3 norm) {
   vec3 ret  = vec3(0);
   ret += ambient;
   ret += sky*0.8;
-  ret += (norm.y*0.25+0.75) * NightAmbient * Fd_Lambert;
+  ret += (norm.y*0.25+0.75) * nightAmbient(scene.GMoonIntensity) * Fd_Lambert;
   return ret;
 #endif
   }
