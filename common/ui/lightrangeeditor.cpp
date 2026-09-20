@@ -29,7 +29,8 @@ LightRangeEditor::LightRangeEditor(MainWindow& owner):mainWindow(owner) {
 
     extraSliders.push_back({"Sun mul",     [](){ return Sky::sunMultiplier(); },     [](float v){ Sky::sunMultiplier()     = v; }, 0.f, 3.f});
     extraSliders.push_back({"Ambient mul", [](){ return Sky::ambientMultiplier(); }, [](float v){ Sky::ambientMultiplier() = v; }, 0.f, 3.f});
-  }
+    extraSliders.push_back({"Moon mul", [](){ return Sky::moonMultiplier(); }, [](float v){ Sky::moonMultiplier() = v; }, 0.f, 5.f});
+}
 
 void LightRangeEditor::toggle() {
   setVisible(!isVisible());

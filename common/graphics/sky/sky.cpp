@@ -195,3 +195,8 @@ float& Sky::ambientMultiplier() {
   static float v = 1.f;
   return v;
   }
+
+float& Sky::moonMultiplier() {
+  static float v = 1.f;
+  return v;
+  }

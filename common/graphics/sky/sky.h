@@ -24,7 +24,9 @@ class Sky final {
     const LightSource&        sunLight()         const { return sun;     }
     const Tempest::Vec3&      ambientLight()     const { return ambient; }
     float                     sunIntensity()     const { return GSunIntensity;  }
-    float                     moonIntensity()    const { return GMoonIntensity; }
+    
+    static float& moonMultiplier();
+    float moonIntensity() const { return GMoonIntensity * moonMultiplier(); }
 
     const Tempest::Texture2d& sunImage()  const { return *sunImg;  }
     const Tempest::Texture2d& moonImage() const { return *moonImg; }
